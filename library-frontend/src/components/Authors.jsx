@@ -29,7 +29,7 @@ const Authors = (props) => {
     return null
   }
   const [name, setName] = useState('')
-  const [year, setYear] = useState(0)
+  const [born, setBorn] = useState(0)
 
     const [addYear] = useMutation(ADD_YEAR, {
       refetchQueries: [{ query: ALL_AUTHORS }]
@@ -37,10 +37,10 @@ const Authors = (props) => {
 
   const setBirthYear = (event) => {
     event.preventDefault()
-    addYear({ variables: {name, setBornTo: year}})
+    addYear({ variables: {name, setBornTo: born}})
 
     setName('')
-    setYear(0)
+    setBorn(0)
   }
  const authors = props.authors
   return (
@@ -62,22 +62,26 @@ const Authors = (props) => {
           ))}
         </tbody>
       </table>
-      <h2>Set birthyear</h2>
-      <form onSubmit={setBirthYear}>
-        <label>
-          Name:
-          <select onChange={(e) => setName(e.target.value)}>
-            {authors.map((a) => 
-              <option key={a.name} value={a.name}>{a.name}</option>
-            )}
-          </select>
+      {props.token && (
+        <>
+          <h2>Set birthyear</h2>
+          <form onSubmit={setBirthYear}>
+          <label>
+            Name:
+            <select name="name" value={name} onChange={(e) => setName(e.target.value)}>
+              {authors.map((a) => 
+                <option key={a.name} value={a.name}>{a.name}</option>
+              )}
+            </select>
           </label>
           <label>
-          Year:
-          <input value={year} onChange={({ target }) => setYear(Number(target.value))} />
-        </label>
-        <button type="submit">Add Born Year</button>
-      </form>
+            born
+            <input value={born} onChange={({ target }) => setBorn(Number(target.value))} />
+          </label>
+          <button type="submit">update author</button>
+        </form>
+      </>
+      )}
     </div>
   )
 }

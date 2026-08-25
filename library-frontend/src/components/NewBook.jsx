@@ -9,21 +9,31 @@ const CREATE_BOOK = gql`
     $published: Int!
     $genres: [String!]
   ) {
-    addBook(title: $title, author: $author, published: $published, genres: $genres) {
+    addBook(
+      title: $title
+      author: $author
+      published: $published
+      genres: $genres
+    ) {
       title
-      author
+      author {
+        name
+      }
       published
       genres
     }
   }
-  `
+`
 
-  const ALL_BOOKS = gql `
-  query {
-    allBooks {
+const ALL_BOOKS = gql`
+  query allBooks($genre: String) {
+    allBooks(genre: $genre) {
       title
-      author
+      author {
+        name
+      }
       published
+      genres
     }
   }
 `
@@ -34,26 +44,41 @@ const NewBook = (props) => {
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
 
-  const [createBook] = useMutation(CREATE_BOOK, {
-    refetchQueries: [{ query: ALL_BOOKS }]
+const [createBook] = useMutation(CREATE_BOOK, {
+  refetchQueries: [
+    {
+      query: ALL_BOOKS,
+      variables: { genre: null }
+    }
+  ],
+  awaitRefetchQueries: true,
+  onError: (error) => {
+    console.log('CREATE BOOK ERROR:', error.message)
+  }
 })
 
   if (!props.show) {
     return null
   }
 
-  const submit = async (event) => {
-    event.preventDefault()
+const submit = async (event) => {
+  event.preventDefault()
 
-    createBook({ variables: {title, author, published: Number(published), genres}})
-    console.log('add book...')
+  await createBook({
+    variables: {
+      title,
+      author,
+      published: Number(published),
+      genres
+    }
+  })
 
-    setTitle('')
-    setPublished('')
-    setAuthor('')
-    setGenres([])
-    setGenre('')
-  }
+  setTitle('')
+  setPublished('')
+  setAuthor('')
+  setGenres([])
+  setGenre('')
+}
 
   const addGenre = () => {
     setGenres(genres.concat(genre))
@@ -64,8 +89,8 @@ const NewBook = (props) => {
     <div>
       <form onSubmit={submit}>
         <div>
-          title
           <label name="title">
+            title
             <input
               value={title}
               onChange={({ target }) => setTitle(target.value)}
@@ -73,17 +98,17 @@ const NewBook = (props) => {
           </label>
         </div>
         <div>
-          author
           <label name="author">
-          <input
-            value={author}
-            onChange={({ target }) => setAuthor(target.value)}
+            author
+            <input
+              value={author}
+              onChange={({ target }) => setAuthor(target.value)}
             />
           </label>
         </div>
         <div>
-          published
           <label name="published">
+            published
             <input
               type="number"
               value={published}
